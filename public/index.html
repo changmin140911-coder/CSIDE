@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#17182a">
+    <meta name="description" content="개강월, 주차, 팀별 타찾 집계 대시보드">
+    <title>타찾 대시보드 · CSIDE</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/dashboard.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#overview">본문 바로가기</a>
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="CSIDE 대시보드 개요">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>CSIDE</span>
+      </a>
+      <nav aria-label="대시보드 메뉴">
+        <a class="nav-link active" href="#overview" aria-current="location"><span class="nav-icon grid-icon" aria-hidden="true"></span>개요</a>
+        <a class="nav-link" href="#weekly"><span class="nav-icon week-icon" aria-hidden="true"></span>주차별 현황</a>
+        <a class="nav-link" href="#teams"><span class="nav-icon team-icon" aria-hidden="true"></span>팀별 현황</a>
+      </nav>
+      <button class="nav-link nav-data" type="button" data-open-source><span class="nav-icon data-icon" aria-hidden="true"></span>데이터 관리</button>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <span class="topbar-title">타찾 분석</span>
+        <button class="connection" id="connection" type="button" data-open-source>
+          <span class="status-dot" aria-hidden="true"></span><span id="connection-label">데이터 불러오는 중</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </button>
+      </header>
+
+      <main id="overview" tabindex="-1">
+        <header class="page-header">
+          <div>
+            <h1>타찾 대시보드</h1>
+            <p>개강월과 주차에 따른 섭외 현황을 살펴보세요.</p>
+          </div>
+          <div class="filters" role="group" aria-label="대시보드 필터">
+            <label for="month">개강월<select id="month"></select></label>
+            <label for="week">주차<select id="week"></select></label>
+            <label for="team">팀<select id="team"></select></label>
+          </div>
+        </header>
+
+        <p id="feedback" class="feedback" role="status" hidden></p>
+        <section class="metrics" aria-label="선택 범위 주요 지표">
+          <article class="metric"><span>집계 건수</span><strong id="total">—</strong><small id="total-detail">선택 범위</small></article>
+          <article class="metric"><span>집계 주차</span><strong id="week-count">—</strong><small id="week-detail">데이터가 있는 주차</small></article>
+          <article class="metric"><span>활동 팀</span><strong id="team-count">—</strong><small id="team-detail">집계 건수가 있는 팀</small></article>
+          <article class="metric"><span>최다 섭외유형</span><strong id="top-type">—</strong><small id="top-detail">선택 범위 내 비중</small></article>
+        </section>
+
+        <div class="charts">
+          <section class="panel month-panel" aria-labelledby="month-title">
+            <header class="panel-header">
+              <div><h2 id="month-title">개강월별 타찾</h2><p>1–12월 전체 · 팀과 주차 필터 미적용</p></div>
+              <span class="legend"><i aria-hidden="true"></i>집계 건수</span>
+            </header>
+            <div class="month-plot" id="month-plot"></div>
+            <p class="chart-note"><span aria-hidden="true"></span>자료가 없는 달</p>
+          </section>
+          <section class="panel type-panel" aria-labelledby="type-title">
+            <header class="panel-header">
+              <div><h2 id="type-title">섭외유형 분포</h2><p id="type-subtitle">선택 범위</p></div>
+              <span class="chart-unit">건 · %</span>
+            </header>
+            <div class="type-chart" id="type-chart"></div>
+          </section>
+        </div>
+
+        <section class="panel weekly-panel" id="weekly" aria-labelledby="weekly-title">
+          <header class="panel-header">
+            <div><h2 id="weekly-title">주차별 현황</h2><p id="weekly-subtitle">개강월과 팀 기준</p></div>
+          </header>
+          <div class="week-list" id="week-list"></div>
+        </section>
+
+        <section class="panel teams-panel" id="teams" aria-labelledby="teams-title">
+          <header class="panel-header">
+            <div><h2 id="teams-title">팀별 현황</h2><p id="team-subtitle">팀을 선택하면 구역별 집계를 볼 수 있어요.</p></div>
+            <span class="chart-unit" id="table-unit">건</span>
+          </header>
+          <div class="team-table" id="team-table" tabindex="0" role="region" aria-label="팀별 섭외유형 집계 표"></div>
+        </section>
+        <footer class="page-footer">타찾 명단의 섭외유형을 기준으로 집계해요. ‘정파만남’은 제외하며, ‘개척’은 개척지인에 포함해요.</footer>
+      </main>
+    </div>
+
+    <dialog id="source-dialog" aria-labelledby="source-title">
+      <header class="dialog-header">
+        <div><h2 id="source-title">데이터 관리</h2><p id="source-description"></p></div>
+        <form method="dialog"><button class="close-button" aria-label="닫기">×</button></form>
+      </header>
+      <p class="source-time" id="source-time"></p>
+      <ul class="source-list" id="source-list" aria-label="집계에 포함된 원본 탭"></ul>
+      <form class="import-form" id="import-form">
+        <label for="csv-files">타찾 명단 CSV 가져오기</label>
+        <p>Google Sheets에서 명단 탭을 CSV로 다운로드한 뒤 선택하세요. 예: 타찾 2월3.csv</p>
+        <input id="csv-files" type="file" accept=".csv,text/csv" multiple required>
+        <button class="primary-button" type="submit">가져오기</button>
+      </form>
+      <button class="primary-button" id="refresh" type="button" hidden>Google Sheets 새로고침</button>
+      <p class="source-notice" id="source-notice" role="status" hidden></p>
+    </dialog>
+  </body>
+</html>
